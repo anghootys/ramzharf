@@ -78,7 +78,7 @@ services:
     environment:
       POSTGRES_DB: note_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
+      POSTGRES_PASSWORD: ${NOTE_DB_PASSWORD:-postgres123}
     volumes:
       - note-service-volume:/var/lib/postgresql/data
     networks:
@@ -111,7 +111,7 @@ services:
     environment:
       POSTGRES_DB: user_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-postgres123}
     volumes:
       - user-service-volume:/var/lib/postgresql/data
     networks:
