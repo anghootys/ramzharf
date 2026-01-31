@@ -1,0 +1,10 @@
+.link-text {
+  transition: background-color 0.3s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+
+  &.copied {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+}
+

@@ -1,0 +1,47 @@
+<form-container>
+  <h1 class="text-2xl sm:text-3xl text-center my-4 sm:my-5 text-primary-500 font-extralight">
+    ثبت نام
+  </h1>
+
+  <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+    @if (errorMessage) {
+      <div class="text-red-500 text-sm text-center mb-3 px-2">{{ errorMessage }}</div>
+    }
+
+    <form-input-container>
+      <form-input>
+        <p-floatlabel variant="on">
+          <input type="text" id="username" formControlName="username" pInputText fluid pSize="small" class="text-left text-sm sm:text-base">
+          <label class="font-extralight! text-gray-400! text-sm sm:text-base" for="username">نام کاربری</label>
+        </p-floatlabel>
+      </form-input>
+
+      <form-input>
+        <p-floatlabel variant="on">
+          <p-password inputId="password" formControlName="password" [autofocus]="false" [toggleMask]="true" fluid autocomplete="off" [feedback]="false" size="small"/>
+          <label class="font-extralight! text-gray-400! text-sm sm:text-base" for="password">کلمه عبور</label>
+        </p-floatlabel>
+      </form-input>
+
+      <form-input>
+        <p-floatlabel variant="on">
+          <p-password inputId="re-password" formControlName="confirmPassword" [autofocus]="false" [toggleMask]="true" fluid autocomplete="off" [feedback]="false" size="small"/>
+          <label class="font-extralight! text-gray-400! text-sm sm:text-base" for="re-password">تکرار کلمه عبور</label>
+        </p-floatlabel>
+      </form-input>
+    </form-input-container>
+
+    <form-input>
+      <button pButton severity="primary" type="submit" fluid size="small" class="mt-4 text-sm sm:text-base" [disabled]="loading || signupForm.invalid">
+        {{ loading ? 'در حال ساخت...' : 'ساخت حساب کاربری' }}
+      </button>
+    </form-input>
+  </form>
+
+  <div class="w-full mt-5 sm:mt-7 mb-3">
+    <div class="text-xs sm:text-sm text-gray-600 font-extralight text-center px-2">
+      حساب کاربری ساخته‌اید؟
+      <a class="text-gray-900" routerLink="/login">ورود</a>
+    </div>
+  </div>
+</form-container>

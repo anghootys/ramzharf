@@ -1,0 +1,135 @@
+services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: ramzharf-api-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - auth-service
+      - note-service
+      - user-service
+    networks:
+      - ramzharf-private-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontent
+    container_name: ramzharf-frontend
+    expose:
+      - "4000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ramzharf-private-network
+    restart: unless-stopped
+
+  auth-service:
+    build: ./auth-service
+    container_name: ramzharf-auth-service
+    expose:
+      - "3001"
+    env_file:
+      - auth-service/.env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ramzharf-private-network
+    restart: unless-stopped
+    depends_on:
+      - auth-service-db
+
+  auth-service-db:
+    image: mongo:7
+    container_name: auth-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: auth_db
+    volumes:
+      - auth-service-volume:/data/db
+    networks:
+      - ramzharf-private-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  note-service:
+    build: ./note-service
+    container_name: ramzharf-note-service
+    expose:
+      - "3002"
+    env_file:
+      - note-service/.env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ramzharf-private-network
+    restart: unless-stopped
+    depends_on:
+      - note-service-db
+
+  note-service-db:
+    image: postgres:16-alpine
+    container_name: note-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: note_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - note-service-volume:/var/lib/postgresql/data
+    networks:
+      - ramzharf-private-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    build: ./user-service
+    container_name: ramzharf-user-service
+    expose:
+      - "3003"
+    env_file:
+      - user-service/.env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ramzharf-private-network
+    restart: unless-stopped
+    depends_on:
+      - user-service-db
+
+  user-service-db:
+    image: postgres:16-alpine
+    container_name: user-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - user-service-volume:/var/lib/postgresql/data
+    networks:
+      - ramzharf-private-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  auth-service-volume:
+    driver: local
+  note-service-volume:
+    driver: local
+  user-service-volume:
+    driver: local
+
+networks:
+  ramzharf-private-network:
+    driver: bridge

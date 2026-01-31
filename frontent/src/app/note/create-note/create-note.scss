@@ -1,0 +1,13 @@
+::ng-deep .p-editor-container .ql-editor {
+  max-width: 100%;
+  overflow-x: auto;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.wrap-break-word {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow-x: auto;
+}

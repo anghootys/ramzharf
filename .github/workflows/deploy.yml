@@ -1,0 +1,207 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${SSH_PORT:-22} $SSH_HOST >> ~/.ssh/known_hosts
+
+      - name: Create env files from secrets
+        run: |
+          mkdir -p ./temp_env
+          
+          # Create auth-service .env file
+          cat > ./temp_env/auth-service.env << 'EOF'
+          ${{ secrets.AUTH_SERVICE_ENV }}
+          EOF
+          
+          # Create note-service .env file
+          cat > ./temp_env/note-service.env << 'EOF'
+          ${{ secrets.NOTE_SERVICE_ENV }}
+          EOF
+          
+          # Create user-service .env file
+          cat > ./temp_env/user-service.env << 'EOF'
+          ${{ secrets.USER_SERVICE_ENV }}
+          EOF
+
+      - name: Deploy to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22} $SSH_USER@$SSH_HOST -o StrictHostKeyChecking=no << 'ENDSSH'
+            set -e
+            
+            # Set deploy path
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/edu-microservices}"
+            cd $DEPLOY_PATH
+            
+            echo "=== Starting deployment ==="
+            echo "Current directory: $(pwd)"
+            
+            # Create backup of current state if it exists
+            if [ -d ".git" ]; then
+              BACKUP_TAG="backup-$(date +%Y%m%d-%H%M%S)"
+              CURRENT_COMMIT=$(git rev-parse HEAD)
+              echo "Creating backup tag: $BACKUP_TAG at commit $CURRENT_COMMIT"
+              git tag $BACKUP_TAG $CURRENT_COMMIT || echo "Warning: Could not create backup tag"
+              
+              # Save current commit to a file for rollback
+              echo $CURRENT_COMMIT > .last_good_commit
+            fi
+            
+            # Pull latest changes
+            echo "=== Pulling latest changes ==="
+            git fetch origin master
+            git reset --hard origin/master
+            
+            # Show current commit
+            echo "Deployed commit: $(git rev-parse HEAD)"
+            echo "Commit message: $(git log -1 --pretty=%B)"
+            
+          ENDSSH
+
+      - name: Copy env files to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # Copy env files to server
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/auth-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/auth-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/note-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/note-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/user-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/user-service/.env
+
+      - name: Build and deploy with Docker Compose
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22} $SSH_USER@$SSH_HOST -o StrictHostKeyChecking=no << 'ENDSSH'
+            set -e
+            
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/edu-microservices}"
+            cd $DEPLOY_PATH
+            
+            echo "=== Building and starting containers ==="
+            
+            # Build and start containers
+            if docker-compose up --build -d; then
+              echo "=== Deployment successful ==="
+              
+              # Wait for services to be healthy
+              echo "Waiting for services to be healthy..."
+              sleep 10
+              
+              # Check if containers are running
+              if docker-compose ps | grep -q "Up"; then
+                echo "=== Container status ==="
+                docker-compose ps
+                
+                # Update the last good commit marker
+                git rev-parse HEAD > .last_good_commit
+                echo "Deployment completed successfully!"
+                exit 0
+              else
+                echo "ERROR: Containers are not running properly"
+                exit 1
+              fi
+            else
+              echo "ERROR: Docker compose build/start failed"
+              exit 1
+            fi
+          ENDSSH
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          echo "=== Deployment failed, attempting rollback ==="
+          
+          ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22} $SSH_USER@$SSH_HOST -o StrictHostKeyChecking=no << 'ENDSSH'
+            set -e
+            
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/edu-microservices}"
+            cd $DEPLOY_PATH
+            
+            # Check if we have a last good commit
+            if [ -f ".last_good_commit" ]; then
+              LAST_GOOD_COMMIT=$(cat .last_good_commit)
+              echo "Rolling back to commit: $LAST_GOOD_COMMIT"
+              
+              # Checkout the last good commit
+              git checkout $LAST_GOOD_COMMIT
+              
+              # Rebuild and restart with the old version
+              echo "Rebuilding with previous version..."
+              docker-compose down
+              docker-compose up --build -d
+              
+              # Check if rollback was successful
+              sleep 10
+              if docker-compose ps | grep -q "Up"; then
+                echo "=== Rollback successful ==="
+                docker-compose ps
+              else
+                echo "ERROR: Rollback failed, containers are not running"
+                docker-compose logs --tail=50
+                exit 1
+              fi
+            else
+              echo "No previous good commit found. Stopping failed containers..."
+              docker-compose down
+              echo "Manual intervention required."
+              exit 1
+            fi
+          ENDSSH
+          
+          # Mark the workflow as failed even after rollback
+          exit 1
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf ~/.ssh/deploy_key
+          rm -rf ./temp_env
+
+      - name: Send deployment notification
+        if: always()
+        env:
+          DEPLOYMENT_STATUS: ${{ job.status }}
+        run: |
+          if [ "$DEPLOYMENT_STATUS" == "success" ]; then
+            echo "Deployment completed successfully"
+          else
+            echo "Deployment failed and rollback was attempted"
+          fi
+

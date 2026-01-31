@@ -1,0 +1,18 @@
+{
+  "auth.register.success": "ثبت نام با موفقیت انجام شد.",
+  "auth.register.failed": "ثبت نام با شکست مواجه شد.",
+  "auth.register.fields_required": "نام کاربری، کلمه عبور و تکرار کلمه عبور الزامی هستند.",
+  "auth.register.password_mismatch": "کلمه‌های عبور مطابقت ندارند",
+  "auth.register.password_length": "کلمه عبور حداقل باید ۸ کارکتر داشته باشد.",
+  "auth.register.username_taken": "نام کاربری قبلاً انتخاب شده است.",
+  "auth.login.success": "ورود با موفقیت انجام شد.",
+  "auth.login.failed": "ورود با شکست مواجه شد.",
+  "auth.login.fields_required": "نام کاربری و کلمه عبور الزامی هستند.",
+  "auth.login.account_locked": "حساب کاربری قفل شده است.",
+  "auth.refresh.success": "تازه سازی توکن با موفقیت انجام شد.",
+  "auth.refresh.failed": "تازه سازی توکن با شکست مواجه شد.",
+  "auth.logout.success": "خروج با موفقیت انجام شد.",
+  "auth.logout.failed": "خروج با شکست مواجه شد.",
+  "auth.token_verify.success": "توکن معتبر است.",
+  "auth.token_verify.failed": "توکن نامعتبر است."
+}

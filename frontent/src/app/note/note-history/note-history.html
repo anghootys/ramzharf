@@ -1,0 +1,94 @@
+<page pageHeader="نویسه‌های من">
+  <div class="flex flex-col justify-center-safe items-center">
+
+    @if (loading()) {
+      <div class="w-full h-64 flex justify-center items-center">
+        <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+      </div>
+    } @else if (error()) {
+      <div class="w-full h-64 flex justify-center items-center">
+        <div class="text-center">
+          <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+          <p class="text-red-600">{{ error() }}</p>
+        </div>
+      </div>
+    } @else {
+      <div class="w-full flex flex-col justify-center-safe items-center gap-6 sm:gap-13">
+        <div class="w-full overflow-x-auto">
+          <p-selectButton [options]="noteCategoryOptions" optionLabel="title" [(ngModel)]="activeNoteCategory" size="small" [allowEmpty]="false">
+            <ng-template #item let-item>
+              <div class="flex justify-center items-center gap-2">
+                <span class="text-xs sm:text-sm">{{item.title}}</span>
+                <p-badge [value]="item.count()" size="small" badgeSize="small" [style]="{fontFamily: 'Vazirmatn FD'}"/>
+              </div>
+            </ng-template>
+          </p-selectButton>
+        </div>
+
+        <div class="w-full overflow-x-auto">
+          @if (notesByCategory().length > 0) {
+            <p-table [value]="notesByCategory()" size="small" [styleClass]="'text-xs sm:text-sm'">
+              <ng-template #header>
+                <tr>
+                  <th class="text-xs sm:text-sm">#</th>
+                  <th class="text-xs sm:text-sm whitespace-nowrap">تاریخ ایجاد نویسه</th>
+                  <th class="text-xs sm:text-sm whitespace-nowrap">تاریخ انقضا نویسه</th>
+                  <th class="text-xs sm:text-sm">وضعیت انقضا</th>
+                  <th class="text-xs sm:text-sm">پیوند اشتراک‌گذاری</th>
+                  <th class="text-xs sm:text-sm">عملیات</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-product let-rowIndex="rowIndex">
+                <tr>
+                  <td class="text-xs sm:text-sm">{{ rowIndex + 1 }}</td>
+                  <td class="text-xs sm:text-sm whitespace-nowrap">
+                    <date-viewer [date]="product.createdDate"/>
+                  </td>
+                  <td class="text-xs sm:text-sm whitespace-nowrap">
+                    @if (product.expirationDate) {
+                      <date-viewer [date]="product.expirationDate"/>
+                    } @else {
+                      <span class="text-gray-500">هیچگاه</span>
+                    }
+                  </td>
+                  <td>
+                    @if (product.isExpired) {
+                      <p-badge size="small" severity="danger" value="منقضی شده"/>
+                    } @else {
+                      <p-badge size="small" severity="success" value="منقضی نشده"/>
+                    }
+                  </td>
+                  <td>
+                    <div class="w-full bg-gray-50 flex justify-center items-center rounded-md px-2 sm:px-4 py-1 sm:py-2 text-[10px] sm:text-[11px] select-none">
+                      <pre class="w-fit link-text cursor-pointer" (click)="copyToClipboard(product.link, $event)">{{product.link}}</pre>
+                    </div>
+                  </td>
+                  <td>
+                    <p-button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      size="small"
+                      [loading]="deletingNoteId() === product.id"
+                      [disabled]="deletingNoteId() !== null"
+                      (onClick)="deleteNote(product.id)"
+                      [text]="true"/>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          } @else {
+            <div class="w-full h-64 bg-primary-50 rounded-md border-2 border-dashed border-primary-200">
+              <div class="w-full h-full flex flex-col justify-center items-center gap-3">
+                <i class="pi pi-inbox text-6xl text-gray-400"></i>
+                <span class="text-gray-500 font-light">
+                  نویسه‌ای برای نمایش وجود ندارد.
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</page>

@@ -1,0 +1,62 @@
+<p-toast/>
+<div class="min-h-screen bg-white p-8">
+  @if (loading()) {
+    <div class="text-center p-8">
+      <p>در حال بارگذاری...</p>
+    </div>
+  } @else if (error()) {
+    <div class="text-center p-8 text-red-500">
+      <p>{{ error() }}</p>
+      <p-button label="بازگشت" severity="secondary" size="small" (onClick)="router.navigate(['/'])"/>
+    </div>
+  } @else if (showPasswordPrompt()) {
+    <div class="max-w-md mx-auto p-8">
+      <div class="text-center mb-6">
+        <h2 class="text-xl font-semibold mb-2">نویسه رمزگذاری شده</h2>
+        <p class="text-gray-600">برای مشاهده محتوا، رمز عبور را وارد کنید</p>
+      </div>
+
+      <div class="space-y-4">
+        <p-floatlabel variant="on">
+          <p-password
+            inputId="note-password"
+            [(ngModel)]="password"
+            [toggleMask]="true"
+            fluid
+            [feedback]="false"
+            (keyup.enter)="decryptNote()"
+            size="small"/>
+          <label for="note-password">رمز عبور نویسه</label>
+        </p-floatlabel>
+
+        <p-button
+          label="مشاهده نویسه"
+          severity="primary"
+          fluid
+          size="small"
+          (onClick)="decryptNote()"
+          [disabled]="decrypting() || !password()"/>
+      </div>
+    </div>
+  } @else if (note()) {
+    <div class="max-w-4xl mx-auto">
+      <div class="flex flex-col gap-4">
+        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+          <div [innerHTML]="getSafeContent()" class="prose max-w-none"></div>
+        </div>
+
+        <div class="flex justify-between items-center px-2">
+          <div class="text-sm text-gray-600">
+            @if (getExpirationDate()) {
+              <p>انقضا: <date-viewer [date]="getExpirationDate()"/></p>
+            } @else {
+              <p>هیچگاه منقضی نمی‌شود</p>
+            }
+            <p>ایجاد شده: <date-viewer [date]="getCreatedDate()"/></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

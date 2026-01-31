@@ -1,0 +1,74 @@
+<div class="flex justify-between align-middle h-dvh">
+
+  <aside class="flex-none bg-white shadow border-l-gray-200 border-l">
+    <p-menu [model]="sideMenuItems" [style]="{border: 'none'}">
+      <ng-template #start>
+        <div class="flex justify-center items-center gap-2">
+          <span class="text-3xl font-black text-primary-500">رمـز</span>
+          <logo [width]="40" [height]="48"/>
+          <span class="text-3xl font-black text-primary-500">حـرف</span>
+        </div>
+      </ng-template>
+
+      <ng-template #submenuheader let-item>
+        <div class="relative h-auto my-2">
+          <div class="w-full h-px bg-gray-200 absolute top-[50%] translate-y-[-50%] right-0 z-10"></div>
+          <small class="inline-block absolute top-[50%] translate-y-[-50%] right-0 z-20 bg-white pl-2 font-light">
+            {{item.label}}
+          </small>
+        </div>
+      </ng-template>
+
+      <ng-template #item let-item>
+        <a [routerLink]="item.routerLink" [routerLinkActive]="'active'" class="flex justify-between items-center w-auto py-3 gap-10 hover:bg-white! group cursor-pointer">
+          <div class="flex justify-start items-center gap-2">
+            <div [class]="item.icon" class="p-2 rounded-md text-gray-600 group-hover:bg-primary-50 group-[.active]:bg-primary-50"></div>
+            <span class="font-light">
+            {{item.label}}
+          </span>
+          </div>
+        </a>
+      </ng-template>
+
+      <ng-template #end>
+
+      </ng-template>
+    </p-menu>
+  </aside>
+
+  <main class="w-full h-full flex flex-col">
+    <nav class="flex-none flex justify-end items-center w-full h-12.5 bg-white shadow border-b border-b-gray-300 px-10">
+      <div style="direction: ltr">
+        <p-menubar [model]="navbarMenuItems">
+          <ng-template #item let-item let-root="root">
+            @if (root) {
+              <a pRipple class="flex items-center px-2 py-1 cursor-pointer gap-3 select-none" style="direction: rtl">
+                <i [class]="item.icon"></i>
+                @if (item.label.trim().length > 0) {
+                  <span class="text-sm" style="margin-top: 3px">{{ item.label }}</span>
+                }
+                @if (item.items) {
+                  <i class="pi pi-angle-down text-gray-500" style="font-size: 12px;"></i>
+                }
+              </a>
+            } @else {
+              <a pRipple class="flex items-center px-4 py-3 cursor-pointer gap-3 select-none">
+                <span class="">{{ item.label }}</span>
+                <i [class]="item.icon"></i>
+              </a>
+            }
+          </ng-template>
+        </p-menubar>
+      </div>
+    </nav>
+
+    <section class="w-full h-full bg-gray-100 p-5 overflow-y-auto">
+      <div class="max-w-300 mx-auto mb-5">
+        <p-panel [showHeader]="true" [header]="pageHeader()">
+          <ng-content></ng-content>
+        </p-panel>
+      </div>
+    </section>
+  </main>
+
+</div>
