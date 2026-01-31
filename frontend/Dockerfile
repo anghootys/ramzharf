@@ -2,7 +2,7 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
 RUN npm ci
 
@@ -16,6 +16,6 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/dist/* .
+COPY --from=builder /app/dist/ ./
 
 CMD ["node", "server/server.mjs"]
