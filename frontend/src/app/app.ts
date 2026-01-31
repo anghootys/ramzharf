@@ -10,7 +10,7 @@ import {Button} from 'primeng/button';
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('frontent');
+  protected readonly title = signal('frontend');
 
   toggleTheme() {
     const document_element = document.querySelector('html')

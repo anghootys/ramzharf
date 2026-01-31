@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontent
+    build: frontend
     container_name: ramzharf-frontend
     expose:
       - "4000"
