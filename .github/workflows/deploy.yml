@@ -56,7 +56,7 @@ jobs:
             set -e
             
             # Set deploy path
-            DEPLOY_PATH="${DEPLOY_PATH:-/opt/edu-microservices}"
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/ramzharf-microservices}"
             cd $DEPLOY_PATH
             
             echo "=== Starting deployment ==="
@@ -92,9 +92,9 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           # Copy env files to server
-          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/auth-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/auth-service/.env
-          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/note-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/note-service/.env
-          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/user-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/user-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/auth-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/ramzharf-microservices}/auth-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/note-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/ramzharf-microservices}/note-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/user-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/ramzharf-microservices}/user-service/.env
 
       - name: Build and deploy with Docker Compose
         env:
@@ -106,7 +106,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22} $SSH_USER@$SSH_HOST -o StrictHostKeyChecking=no << 'ENDSSH'
             set -e
             
-            DEPLOY_PATH="${DEPLOY_PATH:-/opt/edu-microservices}"
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/ramzharf-microservices}"
             cd $DEPLOY_PATH
             
             echo "=== Building and starting containers ==="
@@ -151,7 +151,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p ${SSH_PORT:-22} $SSH_USER@$SSH_HOST -o StrictHostKeyChecking=no << 'ENDSSH'
             set -e
             
-            DEPLOY_PATH="${DEPLOY_PATH:-/opt/edu-microservices}"
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/ramzharf-microservices}"
             cd $DEPLOY_PATH
             
             # Check if we have a last good commit
