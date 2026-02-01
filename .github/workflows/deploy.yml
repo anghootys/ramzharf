@@ -91,10 +91,13 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          # Copy env files to server
-          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/auth-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/ramzharf-microservices}/auth-service/.env
-          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/note-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/ramzharf-microservices}/note-service/.env
-          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/user-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/ramzharf-microservices}/user-service/.env
+          # Copy root .env file for docker-compose
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/root.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/.env
+          
+          # Copy service env files
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/auth-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/auth-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/note-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/note-service/.env
+          scp -i ~/.ssh/deploy_key -P ${SSH_PORT:-22} ./temp_env/user-service.env $SSH_USER@$SSH_HOST:${DEPLOY_PATH:-/opt/edu-microservices}/user-service/.env
 
       - name: Build and deploy with Docker Compose
         env:
