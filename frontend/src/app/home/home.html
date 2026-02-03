@@ -1,0 +1,23 @@
+<main class="w-dvw h-dvh relative bg-gray-200">
+  <header class="w-full absolute left-0 top-0 pt-5 px-8 flex justify-start items-center gap-1">
+    <div>
+      <logo color="stroke-primary-500"/>
+    </div>
+  </header>
+
+  <section class="w-full h-full flex flex-col justify-center-safe items-center gap-2">
+    <p-carousel [value]="utilities" [numVisible]="1" [circular]="true" [numScroll]="1" orientation="vertical" [verticalViewPortHeight]="verticalViewPortHeight()" [showIndicators]="false" [showNavigators]="false" contentClass="flex items-center" [autoplayInterval]="3000">
+      <ng-template #item let-utility>
+        <div class="flex flex-col items-center justify-center gap-2">
+          <div [innerHTML]="utility.icon"></div>
+          <h1 class="text-md font-bold">
+            {{utility.title}}
+          </h1>
+          <span class="text-sm text-center" style="max-width: 200px">
+          {{utility.description}}
+        </span>
+        </div>
+      </ng-template>
+    </p-carousel>
+  </section>
+</main>

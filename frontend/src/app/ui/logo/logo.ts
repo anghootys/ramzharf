@@ -10,5 +10,5 @@ export class Logo {
   width= input(32);
   height = input(32);
 
-  color = input('fill-primary-500')
+  color = input('stroke-primary-500')
 }

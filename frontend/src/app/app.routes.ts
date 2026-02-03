@@ -1,22 +1,25 @@
 import { Routes } from '@angular/router';
-import {Login} from './auth/login/login';
-import {Signup} from './auth/signup/signup';
 import {E404} from './errors/e-404/e-404';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
+  // {
+  //   path: '',
+  //   pathMatch: 'full',
+  //   loadComponent: () => import('./home/home').then(c => c.Home)
+  // },
   {
     path: '',
-    redirectTo: '/login',
-    pathMatch: 'full'
+    pathMatch: 'full',
+    redirectTo: "/login"
   },
   {
     path: 'login',
-    component: Login
+    loadComponent: () => import("./auth/login/login").then(c => c.Login)
   },
   {
     path: 'signup',
-    component: Signup
+    loadComponent: () => import("./auth/signup/signup").then(c => c.Signup)
   },
   {
     path: 'test',
